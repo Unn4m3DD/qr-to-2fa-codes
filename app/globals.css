@@ -80,6 +80,7 @@ main {
 
 .brand-mark {
   display: grid;
+  flex: 0 0 42px;
   width: 42px;
   height: 42px;
   place-items: center;
@@ -118,7 +119,7 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .panel {
@@ -460,7 +461,7 @@ main {
 .totp-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -482,12 +483,13 @@ main {
 
 .code {
   margin: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: clamp(1.7rem, 8vw, 3rem);
+  font-size: clamp(1.9rem, 8vw, 3rem);
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .next-code {
@@ -495,6 +497,7 @@ main {
   color: var(--muted);
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 0.92rem;
+  white-space: nowrap;
 }
 
 .totp-actions {
@@ -569,6 +572,7 @@ main {
 @media (max-width: 880px) {
   .workspace {
     grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .topbar {
@@ -592,6 +596,7 @@ main {
   }
 
   .brand-mark {
+    flex-basis: 38px;
     width: 38px;
     height: 38px;
   }
@@ -608,7 +613,9 @@ main {
   }
 
   .totp-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 12px;
   }
 
   .timer {
@@ -618,5 +625,19 @@ main {
 
   .timer::before {
     inset: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .code {
+    font-size: 1.65rem;
+  }
+
+  .next-code {
+    font-size: 0.82rem;
+  }
+
+  .totp-actions {
+    gap: 8px;
   }
 }
