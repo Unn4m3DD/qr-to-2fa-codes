@@ -8,8 +8,11 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  Monitor,
+  Moon,
   RefreshCw,
   ShieldCheck,
+  Sun,
   Upload,
 } from "lucide-react";
 import { ChangeEvent, type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
@@ -21,7 +24,10 @@ type TotpCodes = {
   next: string;
 };
 
+type ThemeMode = "system" | "light" | "dark";
+
 const QR_CELLS = Array.from({ length: 49 }, (_, index) => index);
+const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
 
 export default function Home() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -32,6 +38,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState(30);
   const [error, setError] = useState("");
   const [secretVisible, setSecretVisible] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
 
   const bitwardenLabel = useMemo(() => {
     if (!otpData) {
@@ -56,6 +63,23 @@ export default function Home() {
       }
     };
   }, [previewUrl]);
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem("theme-mode");
+    if (isThemeMode(storedTheme)) {
+      setThemeMode(storedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (themeMode === "system") {
+      root.removeAttribute("data-theme");
+    } else {
+      root.dataset.theme = themeMode;
+    }
+    window.localStorage.setItem("theme-mode", themeMode);
+  }, [themeMode]);
 
   useEffect(() => {
     function onPaste(event: globalThis.ClipboardEvent) {
@@ -204,6 +228,13 @@ export default function Home() {
     setSecretVisible(false);
   }
 
+  function cycleThemeMode() {
+    setThemeMode((currentMode) => {
+      const currentIndex = THEME_MODES.indexOf(currentMode);
+      return THEME_MODES[(currentIndex + 1) % THEME_MODES.length];
+    });
+  }
+
   return (
     <main>
       <div className="app-shell">
@@ -217,9 +248,20 @@ export default function Home() {
               <p>Extract a setup QR into Bitwarden-ready TOTP details.</p>
             </div>
           </div>
-          <div className="privacy-pill">
-            <ShieldCheck size={17} />
-            <span>Client-side only</span>
+          <div className="header-actions">
+            <div className="privacy-pill">
+              <ShieldCheck size={17} />
+              <span>Client-side only</span>
+            </div>
+            <button
+              className="button button-secondary button-icon theme-button"
+              type="button"
+              onClick={cycleThemeMode}
+              title={`Theme: ${themeMode}`}
+              aria-label={`Theme: ${themeMode}`}
+            >
+              <ThemeIcon mode={themeMode} />
+            </button>
           </div>
         </header>
 
@@ -404,6 +446,7 @@ export default function Home() {
       </div>
 
       <Toaster
+        theme={themeMode}
         position="top-center"
         duration={2200}
         visibleToasts={4}
@@ -421,6 +464,22 @@ export default function Home() {
       />
     </main>
   );
+}
+
+function ThemeIcon({ mode }: { mode: ThemeMode }) {
+  if (mode === "light") {
+    return <Sun size={17} />;
+  }
+
+  if (mode === "dark") {
+    return <Moon size={17} />;
+  }
+
+  return <Monitor size={17} />;
+}
+
+function isThemeMode(value: string | null): value is ThemeMode {
+  return value === "system" || value === "light" || value === "dark";
 }
 
 async function decodeQrFromImage(file: File) {
