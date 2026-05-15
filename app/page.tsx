@@ -3,7 +3,6 @@
 import jsQR from "jsqr";
 import {
   AlertTriangle,
-  CheckCircle2,
   Clipboard,
   Copy,
   Eye,
@@ -14,6 +13,7 @@ import {
   Upload,
 } from "lucide-react";
 import { ChangeEvent, type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import { Toaster, toast } from "sonner";
 import { generateTotp, OtpAuthData, parseOtpAuthUri, secondsRemaining } from "@/lib/otpauth";
 
 type TotpCodes = {
@@ -32,7 +32,6 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState(30);
   const [error, setError] = useState("");
   const [secretVisible, setSecretVisible] = useState(false);
-  const [copyMessage, setCopyMessage] = useState("");
 
   const bitwardenLabel = useMemo(() => {
     if (!otpData) {
@@ -42,12 +41,12 @@ export default function Home() {
       ? `${otpData.issuer} (${otpData.account})`
       : otpData.label || otpData.account || otpData.issuer || "TOTP";
   }, [otpData]);
-  const timerProgress =
+  const timerElapsed =
     otpData?.type === "totp"
-      ? Math.max(0, Math.min(1, timeLeft / otpData.period))
+      ? Math.max(0, Math.min(1, 1 - timeLeft / otpData.period))
       : 0;
   const timerStyle = {
-    "--timer-progress": `${timerProgress * 360}deg`,
+    "--timer-progress": `${timerElapsed * 360}deg`,
   } as CSSProperties;
 
   useEffect(() => {
@@ -139,7 +138,6 @@ export default function Home() {
 
   async function readImageFile(file: File) {
     setError("");
-    setCopyMessage("");
 
     if (!file.type.startsWith("image/")) {
       setError("Use an image file that contains a 2FA setup QR code.");
@@ -171,7 +169,6 @@ export default function Home() {
       setOtpData(parsed);
       setRawInput(value);
       setError("");
-      setCopyMessage("");
     } catch (nextError) {
       setOtpData(null);
       setCodes(null);
@@ -186,9 +183,9 @@ export default function Home() {
 
     try {
       await navigator.clipboard.writeText(value);
-      setCopyMessage(`${label} copied.`);
+      toast.success(`${label} copied.`);
     } catch {
-      setCopyMessage("Clipboard access was blocked by the browser.");
+      toast.error("Clipboard access was blocked by the browser.");
     }
   }
 
@@ -203,7 +200,7 @@ export default function Home() {
     setOtpData(null);
     setCodes(null);
     setError("");
-    setCopyMessage("");
+    toast.dismiss();
     setSecretVisible(false);
   }
 
@@ -345,34 +342,6 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  {otpData.type === "totp" ? (
-                    <div className="totp-card">
-                      <div className="code-stack">
-                        <p className="code-label">Current code</p>
-                        <p className="code">{codes?.current || "------"}</p>
-                        <p className="next-code">Next: {codes?.next || "------"}</p>
-                      </div>
-                      <div className="totp-actions">
-                        <button
-                          className="button button-secondary button-icon"
-                          type="button"
-                          onClick={() => copyValue("Current code", codes?.current || "")}
-                          title="Copy current code"
-                          disabled={!codes?.current}
-                        >
-                          <Copy size={17} />
-                        </button>
-                        <div
-                          className="timer"
-                          style={timerStyle}
-                          aria-label={`${timeLeft} seconds remaining`}
-                        >
-                          <span>{timeLeft}s</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-
                   <div className="field-card">
                     <div className="field-head">
                       <h3>Authenticator key</h3>
@@ -400,53 +369,57 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="field-card">
-                    <div className="field-head">
-                      <h3>Full otpauth URI</h3>
-                      <button
-                        className="button button-secondary button-icon"
-                        type="button"
-                        onClick={() => copyValue("otpauth URI", otpData.uri)}
-                        title="Copy otpauth URI"
-                      >
-                        <Copy size={17} />
-                      </button>
+                  {otpData.type === "totp" ? (
+                    <div className="totp-card">
+                      <div className="code-stack">
+                        <p className="code-label">Current code</p>
+                        <p className="code">{codes?.current || "------"}</p>
+                        <p className="next-code">Next: {codes?.next || "------"}</p>
+                      </div>
+                      <div className="totp-actions">
+                        <button
+                          className="button button-secondary button-icon"
+                          type="button"
+                          onClick={() => copyValue("Current code", codes?.current || "")}
+                          title="Copy current code"
+                          disabled={!codes?.current}
+                        >
+                          <Copy size={17} />
+                        </button>
+                        <div
+                          className="timer"
+                          style={timerStyle}
+                          aria-label={`${timeLeft} seconds remaining`}
+                        >
+                          <span>{timeLeft}s</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="value">{otpData.uri}</div>
-                  </div>
-
-                  <div className="detail-grid">
-                    <Detail label="Issuer" value={otpData.issuer || "Not provided"} />
-                    <Detail label="Account" value={otpData.account || "Not provided"} />
-                    <Detail label="Algorithm" value={otpData.algorithm} />
-                    <Detail label="Digits" value={String(otpData.digits)} />
-                    <Detail label="Period" value={`${otpData.period}s`} />
-                    <Detail label="Type" value={otpData.type.toUpperCase()} />
-                  </div>
-
-                  <div className="copy-feedback" role="status" aria-live="polite">
-                    {copyMessage ? (
-                      <>
-                        <CheckCircle2 size={14} /> {copyMessage}
-                      </>
-                    ) : null}
-                  </div>
+                  ) : null}
                 </>
               )}
             </div>
           </div>
         </section>
       </div>
-    </main>
-  );
-}
 
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="detail">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
+      <Toaster
+        position="top-center"
+        duration={2200}
+        visibleToasts={4}
+        offset={24}
+        toastOptions={{
+          unstyled: true,
+          classNames: {
+            toast: "sonner-toast",
+            success: "sonner-toast-success",
+            error: "sonner-toast-error",
+            title: "sonner-toast-title",
+            icon: "sonner-toast-icon",
+          },
+        }}
+      />
+    </main>
   );
 }
 

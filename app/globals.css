@@ -512,8 +512,8 @@ main {
   border-radius: 50%;
   background: conic-gradient(
     from 0deg,
-    var(--accent) var(--timer-progress, 0deg),
-    var(--accent-soft) 0
+    var(--accent-soft) var(--timer-progress, 0deg),
+    var(--accent) 0
   );
   color: var(--accent-strong);
   font-weight: 800;
@@ -534,37 +534,36 @@ main {
   z-index: 1;
 }
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.detail {
-  border: 1px solid var(--border);
+.sonner-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(calc(100vw - 32px), 420px);
+  min-height: 40px;
+  padding: 10px 13px;
+  border: 1px solid rgb(15 118 110 / 22%);
   border-radius: 8px;
-  padding: 12px;
-  background: white;
-}
-
-.detail span {
-  display: block;
-  margin-bottom: 5px;
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.detail strong {
-  overflow-wrap: anywhere;
-  font-size: 0.98rem;
-}
-
-.copy-feedback {
-  min-height: 20px;
+  background: #eefbf6;
   color: var(--accent-strong);
-  font-size: 0.9rem;
+  box-shadow: 0 12px 30px rgb(40 54 68 / 16%);
+}
+
+.sonner-toast-error {
+  border-color: rgb(169 41 41 / 24%);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.sonner-toast-title {
+  overflow-wrap: anywhere;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.sonner-toast-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 @media (max-width: 880px) {
@@ -619,9 +618,5 @@ main {
 
   .timer::before {
     inset: 6px;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
   }
 }
