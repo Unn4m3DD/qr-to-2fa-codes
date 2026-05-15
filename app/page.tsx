@@ -13,7 +13,7 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { generateTotp, OtpAuthData, parseOtpAuthUri, secondsRemaining } from "@/lib/otpauth";
 
 type TotpCodes = {
@@ -42,6 +42,13 @@ export default function Home() {
       ? `${otpData.issuer} (${otpData.account})`
       : otpData.label || otpData.account || otpData.issuer || "TOTP";
   }, [otpData]);
+  const timerProgress =
+    otpData?.type === "totp"
+      ? Math.max(0, Math.min(1, timeLeft / otpData.period))
+      : 0;
+  const timerStyle = {
+    "--timer-progress": `${timerProgress * 360}deg`,
+  } as CSSProperties;
 
   useEffect(() => {
     return () => {
@@ -355,8 +362,12 @@ export default function Home() {
                         >
                           <Copy size={17} />
                         </button>
-                        <div className="timer" aria-label={`${timeLeft} seconds remaining`}>
-                          {timeLeft}s
+                        <div
+                          className="timer"
+                          style={timerStyle}
+                          aria-label={`${timeLeft} seconds remaining`}
+                        >
+                          <span>{timeLeft}s</span>
                         </div>
                       </div>
                     </div>

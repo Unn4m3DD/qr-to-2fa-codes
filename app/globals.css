@@ -1,3 +1,9 @@
+@property --timer-progress {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 :root {
   color-scheme: light;
   --background: #f5f7fa;
@@ -498,15 +504,34 @@ main {
 }
 
 .timer {
+  position: relative;
   display: grid;
   width: 68px;
   height: 68px;
   place-items: center;
-  border: 7px solid var(--accent-soft);
-  border-top-color: var(--accent);
   border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    var(--accent) var(--timer-progress, 0deg),
+    var(--accent-soft) 0
+  );
   color: var(--accent-strong);
   font-weight: 800;
+  transition: --timer-progress 260ms linear;
+}
+
+.timer::before {
+  position: absolute;
+  inset: 7px;
+  border-radius: inherit;
+  background: #f8fbfa;
+  box-shadow: inset 0 0 0 1px rgb(15 118 110 / 10%);
+  content: "";
+}
+
+.timer span {
+  position: relative;
+  z-index: 1;
 }
 
 .detail-grid {
@@ -590,7 +615,10 @@ main {
   .timer {
     width: 56px;
     height: 56px;
-    border-width: 6px;
+  }
+
+  .timer::before {
+    inset: 6px;
   }
 
   .detail-grid {
